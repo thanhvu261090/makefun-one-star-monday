@@ -17,6 +17,7 @@ Why this line fits the judge's brief:
   explanation attached.
 """
 
+import hashlib
 import os
 import tempfile
 
@@ -77,12 +78,22 @@ def gate_check(text):
     return validate_length(text)
 
 
+def entry_sha256(text):
+    """Return the sha256 hex of the entry's exact UTF-8 bytes.
+
+    Lets anyone confirm the file on disk is byte-identical to the entry
+    this program holds, without re-reading the source.
+    """
+    return hashlib.sha256(validate_utf8(text)).hexdigest()
+
+
 def describe_entry(text):
     """Return a short summary of the entry for logging and debugging."""
     return {
         "words": word_count(text),
         "chars": len(text),
         "bytes": len(validate_utf8(text)),
+        "sha256": entry_sha256(text),
         "single_line": "\n" not in text and "\r" not in text,
     }
 
@@ -131,6 +142,7 @@ def self_test():
     print(f"words: {stats['words']} (max {MAX_WORDS})")
     print(f"chars: {stats['chars']} (max {MAX_CHARS})")
     print(f"bytes: {stats['bytes']}")
+    print(f"sha256: {stats['sha256']}")
     print("self-test: PASS")
     return True
 
